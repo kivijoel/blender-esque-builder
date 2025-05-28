@@ -4,12 +4,13 @@ import { PanelType } from '@/types/panel';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
-import { X, Menu, Settings, Maximize2, Minimize2, Copy } from 'lucide-react';
+import { X, Menu, Settings, Maximize2, Minimize2, Copy, RotateCcw } from 'lucide-react';
 
 interface PanelHeaderProps {
   type: PanelType;
   onTypeChange: (type: PanelType) => void;
   onRemove: () => void;
+  onResetTextSize: () => void;
 }
 
 const panelTypes: { value: PanelType; label: string }[] = [
@@ -21,7 +22,7 @@ const panelTypes: { value: PanelType; label: string }[] = [
   { value: 'text-editor', label: 'Text Editor' },
 ];
 
-export const PanelHeader: React.FC<PanelHeaderProps> = ({ type, onTypeChange, onRemove }) => {
+export const PanelHeader: React.FC<PanelHeaderProps> = ({ type, onTypeChange, onRemove, onResetTextSize }) => {
   return (
     <div className="h-8 bg-gray-700 border-b border-gray-600 flex items-center justify-between px-2">
       <div className="flex items-center gap-1">
@@ -43,6 +44,14 @@ export const PanelHeader: React.FC<PanelHeaderProps> = ({ type, onTypeChange, on
               <Settings className="mr-2 h-3 w-3" />
               Panel Settings
             </DropdownMenuItem>
+            <DropdownMenuItem 
+              className="hover:bg-gray-600 focus:bg-gray-600"
+              onClick={onResetTextSize}
+            >
+              <RotateCcw className="mr-2 h-3 w-3" />
+              Reset Text Size
+            </DropdownMenuItem>
+            <DropdownMenuSeparator className="bg-gray-600" />
             <DropdownMenuItem className="hover:bg-gray-600 focus:bg-gray-600">
               <Maximize2 className="mr-2 h-3 w-3" />
               Maximize Panel

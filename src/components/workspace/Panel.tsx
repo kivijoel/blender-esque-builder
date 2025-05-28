@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { PanelData, PanelType } from '@/types/panel';
 import { PanelHeader } from './PanelHeader';
@@ -37,6 +36,10 @@ export const Panel: React.FC<PanelProps> = ({ data, onUpdate, onAddPanel, onRemo
     onUpdate(data.id, { type: newType });
   };
 
+  const handleResetTextSize = () => {
+    setFontSize(14);
+  };
+
   const style: React.CSSProperties = {
     position: 'absolute',
     left: `${data.x}%`,
@@ -56,6 +59,7 @@ export const Panel: React.FC<PanelProps> = ({ data, onUpdate, onAddPanel, onRemo
         type={data.type} 
         onTypeChange={handleTypeChange}
         onRemove={() => onRemovePanel(data.id)}
+        onResetTextSize={handleResetTextSize}
       />
       <PanelContent type={data.type} fontSize={fontSize} />
       
