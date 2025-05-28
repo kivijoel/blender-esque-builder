@@ -1,17 +1,20 @@
+
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { PanelData, PanelType } from '@/types/panel';
 import { PanelHeader } from './PanelHeader';
 import { PanelContent } from './PanelContent';
 import { PanelEdge } from './PanelEdge';
+import { ResizeHandle } from './ResizeHandle';
 
 interface PanelProps {
   data: PanelData;
   onUpdate: (id: string, updates: Partial<PanelData>) => void;
   onAddPanel: (direction: 'left' | 'right' | 'top' | 'bottom', targetId: string) => void;
   onRemovePanel: (id: string) => void;
+  onResize: (id: string, direction: 'right' | 'bottom', delta: number) => void;
 }
 
-export const Panel: React.FC<PanelProps> = ({ data, onUpdate, onAddPanel, onRemovePanel }) => {
+export const Panel: React.FC<PanelProps> = ({ data, onUpdate, onAddPanel, onRemovePanel, onResize }) => {
   const [fontSize, setFontSize] = useState(14);
   const [isDragging, setIsDragging] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
@@ -71,6 +74,16 @@ export const Panel: React.FC<PanelProps> = ({ data, onUpdate, onAddPanel, onRemo
       <PanelEdge 
         position="bottom" 
         onSplit={() => onAddPanel('bottom', data.id)} 
+      />
+
+      {/* Resize handles */}
+      <ResizeHandle
+        direction="right"
+        onResize={(delta) => onResize(data.id, 'right', delta)}
+      />
+      <ResizeHandle
+        direction="bottom"
+        onResize={(delta) => onResize(data.id, 'bottom', delta)}
       />
     </div>
   );

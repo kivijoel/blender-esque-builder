@@ -16,6 +16,23 @@ export const WorkspaceContainer = () => {
     ));
   }, []);
 
+  const handleResize = useCallback((id: string, direction: 'right' | 'bottom', delta: number) => {
+    setPanels(prev => {
+      return prev.map(panel => {
+        if (panel.id === id) {
+          if (direction === 'right') {
+            const newWidth = Math.max(10, Math.min(90, panel.width + delta));
+            return { ...panel, width: newWidth };
+          } else {
+            const newHeight = Math.max(10, Math.min(90, panel.height + delta));
+            return { ...panel, height: newHeight };
+          }
+        }
+        return panel;
+      });
+    });
+  }, []);
+
   const addPanel = useCallback((direction: 'left' | 'right' | 'top' | 'bottom', targetId: string) => {
     setPanels(prev => {
       const targetPanel = prev.find(p => p.id === targetId);
@@ -63,7 +80,43 @@ export const WorkspaceContainer = () => {
   }, []);
 
   const removePanel = useCallback((id: string) => {
-    setPanels(prev => prev.filter(panel => panel.id !== id));
+    setPanels(prev => {
+      const panelToRemove = prev.find(p => p.id === id);
+      if (!panelToRemove || prev.length <= 1) return prev;
+
+      const remainingPanels = prev.filter(panel => panel.id !== id);
+      
+      // Find adjacent panels and expand them to fill the space
+      const adjustedPanels = remainingPanels.map(panel => {
+        // Check if panel is adjacent to the removed panel
+        const isRightAdjacent = panel.x === panelToRemove.x + panelToRemove.width;
+        const isBottomAdjacent = panel.y === panelToRemove.y + panelToRemove.height;
+        const isLeftAdjacent = panelToRemove.x === panel.x + panel.width;
+        const isTopAdjacent = panelToRemove.y === panel.y + panel.height;
+
+        let newPanel = { ...panel };
+
+        // Expand horizontally if adjacent
+        if (isRightAdjacent && panel.y === panelToRemove.y && panel.height === panelToRemove.height) {
+          newPanel.x = panelToRemove.x;
+          newPanel.width = panel.width + panelToRemove.width;
+        } else if (isLeftAdjacent && panel.y === panelToRemove.y && panel.height === panelToRemove.height) {
+          newPanel.width = panel.width + panelToRemove.width;
+        }
+
+        // Expand vertically if adjacent
+        if (isBottomAdjacent && panel.x === panelToRemove.x && panel.width === panelToRemove.width) {
+          newPanel.y = panelToRemove.y;
+          newPanel.height = panel.height + panelToRemove.height;
+        } else if (isTopAdjacent && panel.x === panelToRemove.x && panel.width === panelToRemove.width) {
+          newPanel.height = panel.height + panelToRemove.height;
+        }
+
+        return newPanel;
+      });
+
+      return adjustedPanels;
+    });
   }, []);
 
   return (
@@ -75,6 +128,7 @@ export const WorkspaceContainer = () => {
           onUpdate={updatePanel}
           onAddPanel={addPanel}
           onRemovePanel={removePanel}
+          onResize={handleResize}
         />
       ))}
     </div>
