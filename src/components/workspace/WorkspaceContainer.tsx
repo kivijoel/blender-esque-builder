@@ -22,9 +22,35 @@ export const WorkspaceContainer = () => {
         if (panel.id === id) {
           if (direction === 'right') {
             const newWidth = Math.max(10, Math.min(90, panel.width + delta));
+            
+            // Find panels to the right that need to be adjusted
+            prev.forEach(otherPanel => {
+              if (otherPanel.id !== id && 
+                  Math.abs(otherPanel.x - (panel.x + panel.width)) < 1 && // Adjacent on right
+                  otherPanel.y < panel.y + panel.height && 
+                  otherPanel.y + otherPanel.height > panel.y) {
+                const widthChange = newWidth - panel.width;
+                otherPanel.x = panel.x + newWidth;
+                otherPanel.width = Math.max(10, otherPanel.width - widthChange);
+              }
+            });
+            
             return { ...panel, width: newWidth };
           } else {
             const newHeight = Math.max(10, Math.min(90, panel.height + delta));
+            
+            // Find panels below that need to be adjusted
+            prev.forEach(otherPanel => {
+              if (otherPanel.id !== id && 
+                  Math.abs(otherPanel.y - (panel.y + panel.height)) < 1 && // Adjacent below
+                  otherPanel.x < panel.x + panel.width && 
+                  otherPanel.x + otherPanel.width > panel.x) {
+                const heightChange = newHeight - panel.height;
+                otherPanel.y = panel.y + newHeight;
+                otherPanel.height = Math.max(10, otherPanel.height - heightChange);
+              }
+            });
+            
             return { ...panel, height: newHeight };
           }
         }
