@@ -145,30 +145,45 @@ export const WorkspaceContainer = () => {
       if (!panelToRemove || prev.length <= 1) return prev;
 
       const remainingPanels = prev.filter(panel => panel.id !== id);
+      const tolerance = 0.1;
       
-      // Find adjacent panels and expand them to fill the space
+      // Find panels that should expand to fill the removed panel's space
       const adjustedPanels = remainingPanels.map(panel => {
-        // Check if panel is adjacent to the removed panel
-        const isRightAdjacent = panel.x === panelToRemove.x + panelToRemove.width;
-        const isBottomAdjacent = panel.y === panelToRemove.y + panelToRemove.height;
-        const isLeftAdjacent = panelToRemove.x === panel.x + panel.width;
-        const isTopAdjacent = panelToRemove.y === panel.y + panel.height;
-
         let newPanel = { ...panel };
 
-        // Expand horizontally if adjacent
-        if (isRightAdjacent && panel.y === panelToRemove.y && panel.height === panelToRemove.height) {
+        // Check if panel is directly adjacent to the removed panel
+        const isRightAdjacent = Math.abs(panel.x - (panelToRemove.x + panelToRemove.width)) < tolerance &&
+                               panel.y < panelToRemove.y + panelToRemove.height &&
+                               panel.y + panel.height > panelToRemove.y;
+
+        const isLeftAdjacent = Math.abs(panelToRemove.x - (panel.x + panel.width)) < tolerance &&
+                              panel.y < panelToRemove.y + panelToRemove.height &&
+                              panel.y + panel.height > panelToRemove.y;
+
+        const isBottomAdjacent = Math.abs(panel.y - (panelToRemove.y + panelToRemove.height)) < tolerance &&
+                                panel.x < panelToRemove.x + panelToRemove.width &&
+                                panel.x + panel.width > panelToRemove.x;
+
+        const isTopAdjacent = Math.abs(panelToRemove.y - (panel.y + panel.height)) < tolerance &&
+                             panel.x < panelToRemove.x + panelToRemove.width &&
+                             panel.x + panel.width > panelToRemove.x;
+
+        // Expand panel to fill the removed panel's space
+        if (isRightAdjacent) {
+          // Panel is to the right of removed panel - expand left
           newPanel.x = panelToRemove.x;
           newPanel.width = panel.width + panelToRemove.width;
-        } else if (isLeftAdjacent && panel.y === panelToRemove.y && panel.height === panelToRemove.height) {
+        } else if (isLeftAdjacent) {
+          // Panel is to the left of removed panel - expand right
           newPanel.width = panel.width + panelToRemove.width;
         }
 
-        // Expand vertically if adjacent
-        if (isBottomAdjacent && panel.x === panelToRemove.x && panel.width === panelToRemove.width) {
+        if (isBottomAdjacent) {
+          // Panel is below removed panel - expand up
           newPanel.y = panelToRemove.y;
           newPanel.height = panel.height + panelToRemove.height;
-        } else if (isTopAdjacent && panel.x === panelToRemove.x && panel.width === panelToRemove.width) {
+        } else if (isTopAdjacent) {
+          // Panel is above removed panel - expand down
           newPanel.height = panel.height + panelToRemove.height;
         }
 
