@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback } from 'react';
 import { Panel } from './Panel';
 import { PanelData, PanelType } from '@/types/panel';
@@ -184,6 +185,7 @@ export const WorkspaceContainer = () => {
         <Panel
           key={panel.id}
           data={panel}
+          allPanels={panels}
           onUpdate={updatePanel}
           onAddPanel={addPanel}
           onRemovePanel={removePanel}

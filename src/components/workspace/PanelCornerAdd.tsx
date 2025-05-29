@@ -35,10 +35,6 @@ export const PanelCornerAdd: React.FC<PanelCornerAddProps> = ({
     setShowDirections(false);
   };
 
-  const handleMouseLeave = () => {
-    setShowDirections(false);
-  };
-
   const getPositionClasses = () => {
     switch (position) {
       case 'top-left':
@@ -53,18 +49,15 @@ export const PanelCornerAdd: React.FC<PanelCornerAddProps> = ({
   };
 
   return (
-    <div
-      className={`absolute ${getPositionClasses()} z-20`}
-      onMouseLeave={handleMouseLeave}
-    >
+    <div className={`absolute ${getPositionClasses()} z-20`}>
       {!showDirections && (
         <Button
           size="sm"
           variant="secondary"
           onClick={handlePlusClick}
-          className="h-4 w-4 p-0 bg-blue-500 hover:bg-blue-600 text-white opacity-80 hover:opacity-100"
+          className="h-3 w-3 p-0 bg-blue-500 hover:bg-blue-600 text-white opacity-80 hover:opacity-100"
         >
-          <Plus size={8} />
+          <Plus size={6} />
         </Button>
       )}
 
@@ -74,46 +67,46 @@ export const PanelCornerAdd: React.FC<PanelCornerAddProps> = ({
           <Button
             size="sm"
             variant="secondary"
-            className="h-4 w-4 p-0 bg-blue-500 text-white"
+            className="h-3 w-3 p-0 bg-blue-500 text-white"
           >
-            <Plus size={8} />
+            <Plus size={6} />
           </Button>
 
-          {/* Direction buttons */}
+          {/* Direction buttons - positioned to stay clickable */}
           <Button
             size="sm"
             variant="secondary"
             onClick={() => handleDirectionClick('top')}
-            className="absolute -top-5 left-0 h-3 w-4 p-0 bg-green-500 hover:bg-green-600 text-white"
+            className="absolute -top-4 left-0 h-2 w-3 p-0 bg-green-500 hover:bg-green-600 text-white z-30"
           >
-            <ArrowUp size={6} />
+            <ArrowUp size={4} />
           </Button>
 
           <Button
             size="sm"
             variant="secondary"
             onClick={() => handleDirectionClick('right')}
-            className="absolute top-0 -right-5 h-4 w-3 p-0 bg-green-500 hover:bg-green-600 text-white"
+            className="absolute top-0 -right-4 h-3 w-2 p-0 bg-green-500 hover:bg-green-600 text-white z-30"
           >
-            <ArrowRight size={6} />
+            <ArrowRight size={4} />
           </Button>
 
           <Button
             size="sm"
             variant="secondary"
             onClick={() => handleDirectionClick('bottom')}
-            className="absolute -bottom-5 left-0 h-3 w-4 p-0 bg-green-500 hover:bg-green-600 text-white"
+            className="absolute -bottom-4 left-0 h-2 w-3 p-0 bg-green-500 hover:bg-green-600 text-white z-30"
           >
-            <ArrowDown size={6} />
+            <ArrowDown size={4} />
           </Button>
 
           <Button
             size="sm"
             variant="secondary"
             onClick={() => handleDirectionClick('left')}
-            className="absolute top-0 -left-5 h-4 w-3 p-0 bg-green-500 hover:bg-green-600 text-white"
+            className="absolute top-0 -left-4 h-3 w-2 p-0 bg-green-500 hover:bg-green-600 text-white z-30"
           >
-            <ArrowLeft size={6} />
+            <ArrowLeft size={4} />
           </Button>
         </div>
       )}
