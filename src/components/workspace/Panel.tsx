@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { PanelData, PanelType } from '@/types/panel';
 import { PanelHeader } from './PanelHeader';
@@ -70,8 +71,11 @@ export const Panel: React.FC<PanelProps> = ({ data, onUpdate, onAddPanel, onRemo
       />
       <PanelContent type={data.type} fontSize={fontSize} />
       
-      {/* Corner add button */}
-      <PanelCornerAdd onAddPanel={handleCornerAdd} />
+      {/* Corner add buttons in all four corners */}
+      <PanelCornerAdd onAddPanel={handleCornerAdd} position="top-right" />
+      <PanelCornerAdd onAddPanel={handleCornerAdd} position="top-left" />
+      <PanelCornerAdd onAddPanel={handleCornerAdd} position="bottom-right" />
+      <PanelCornerAdd onAddPanel={handleCornerAdd} position="bottom-left" />
       
       {/* Panel edges for splitting */}
       <PanelEdge 
