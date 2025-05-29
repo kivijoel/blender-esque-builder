@@ -8,7 +8,6 @@ interface PanelCornerAddProps {
 }
 
 export const PanelCornerAdd: React.FC<PanelCornerAddProps> = ({ onAddPanel }) => {
-  const [isHovered, setIsHovered] = useState(false);
   const [showDirections, setShowDirections] = useState(false);
 
   const handlePlusClick = () => {
@@ -21,17 +20,15 @@ export const PanelCornerAdd: React.FC<PanelCornerAddProps> = ({ onAddPanel }) =>
   };
 
   const handleMouseLeave = () => {
-    setIsHovered(false);
     setShowDirections(false);
   };
 
   return (
     <div
       className="absolute top-1 right-1 z-20"
-      onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={handleMouseLeave}
     >
-      {isHovered && !showDirections && (
+      {!showDirections && (
         <Button
           size="sm"
           variant="secondary"
