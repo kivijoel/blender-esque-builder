@@ -1,10 +1,10 @@
-
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { PanelData, PanelType } from '@/types/panel';
 import { PanelHeader } from './PanelHeader';
 import { PanelContent } from './PanelContent';
 import { PanelEdge } from './PanelEdge';
 import { ResizeHandle } from './ResizeHandle';
+import { PanelCornerAdd } from './PanelCornerAdd';
 
 interface PanelProps {
   data: PanelData;
@@ -43,6 +43,10 @@ export const Panel: React.FC<PanelProps> = ({ data, onUpdate, onAddPanel, onRemo
     setFontSize(14);
   };
 
+  const handleCornerAdd = (direction: 'left' | 'right' | 'top' | 'bottom') => {
+    onAddPanel(direction, data.id);
+  };
+
   const style: React.CSSProperties = {
     position: 'absolute',
     left: `${data.x}%`,
@@ -65,6 +69,9 @@ export const Panel: React.FC<PanelProps> = ({ data, onUpdate, onAddPanel, onRemo
         onResetTextSize={handleResetTextSize}
       />
       <PanelContent type={data.type} fontSize={fontSize} />
+      
+      {/* Corner add button */}
+      <PanelCornerAdd onAddPanel={handleCornerAdd} />
       
       {/* Panel edges for splitting */}
       <PanelEdge 

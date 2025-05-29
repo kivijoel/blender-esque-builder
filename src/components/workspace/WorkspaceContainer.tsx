@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback } from 'react';
 import { Panel } from './Panel';
 import { PanelData, PanelType } from '@/types/panel';
@@ -68,7 +67,7 @@ export const WorkspaceContainer = () => {
       const newPanels = [...prev];
       
       if (direction === 'right') {
-        // Split horizontally
+        // Split horizontally - target panel gets smaller, new panel added to the right
         const newWidth = targetPanel.width / 2;
         newPanels.forEach(panel => {
           if (panel.id === targetId) {
@@ -83,8 +82,25 @@ export const WorkspaceContainer = () => {
           width: newWidth,
           height: targetPanel.height
         });
+      } else if (direction === 'left') {
+        // Split horizontally - new panel added to the left, target panel moves right
+        const newWidth = targetPanel.width / 2;
+        newPanels.forEach(panel => {
+          if (panel.id === targetId) {
+            panel.x = targetPanel.x + newWidth;
+            panel.width = newWidth;
+          }
+        });
+        newPanels.push({
+          id: newId,
+          type: 'viewport',
+          x: targetPanel.x,
+          y: targetPanel.y,
+          width: newWidth,
+          height: targetPanel.height
+        });
       } else if (direction === 'bottom') {
-        // Split vertically
+        // Split vertically - target panel gets smaller, new panel added below
         const newHeight = targetPanel.height / 2;
         newPanels.forEach(panel => {
           if (panel.id === targetId) {
@@ -96,6 +112,23 @@ export const WorkspaceContainer = () => {
           type: 'viewport',
           x: targetPanel.x,
           y: targetPanel.y + newHeight,
+          width: targetPanel.width,
+          height: newHeight
+        });
+      } else if (direction === 'top') {
+        // Split vertically - new panel added above, target panel moves down
+        const newHeight = targetPanel.height / 2;
+        newPanels.forEach(panel => {
+          if (panel.id === targetId) {
+            panel.y = targetPanel.y + newHeight;
+            panel.height = newHeight;
+          }
+        });
+        newPanels.push({
+          id: newId,
+          type: 'viewport',
+          x: targetPanel.x,
+          y: targetPanel.y,
           width: targetPanel.width,
           height: newHeight
         });
