@@ -3,14 +3,15 @@ import React from 'react';
 import { PanelType } from '@/types/panel';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
-import { X, Menu, Settings, Maximize2, Minimize2, Copy, RotateCcw } from 'lucide-react';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator, DropdownMenuSub, DropdownMenuSubContent, DropdownMenuSubTrigger } from '@/components/ui/dropdown-menu';
+import { X, Menu, Settings, Maximize2, Minimize2, Copy, RotateCcw, Plus, ArrowLeft, ArrowRight, ArrowUp, ArrowDown } from 'lucide-react';
 
 interface PanelHeaderProps {
   type: PanelType;
   onTypeChange: (type: PanelType) => void;
   onRemove: () => void;
   onResetTextSize: () => void;
+  onAddPanel: (direction: 'left' | 'right' | 'top' | 'bottom') => void;
 }
 
 const panelTypes: { value: PanelType; label: string }[] = [
@@ -22,7 +23,7 @@ const panelTypes: { value: PanelType; label: string }[] = [
   { value: 'text-editor', label: 'Text Editor' },
 ];
 
-export const PanelHeader: React.FC<PanelHeaderProps> = ({ type, onTypeChange, onRemove, onResetTextSize }) => {
+export const PanelHeader: React.FC<PanelHeaderProps> = ({ type, onTypeChange, onRemove, onResetTextSize, onAddPanel }) => {
   return (
     <div className="h-8 bg-gray-700 border-b border-gray-600 flex items-center justify-between px-2">
       <div className="flex items-center gap-1">
@@ -51,6 +52,43 @@ export const PanelHeader: React.FC<PanelHeaderProps> = ({ type, onTypeChange, on
               <RotateCcw className="mr-2 h-3 w-3" />
               Reset Text Size
             </DropdownMenuItem>
+            <DropdownMenuSeparator className="bg-gray-600" />
+            <DropdownMenuSub>
+              <DropdownMenuSubTrigger className="hover:bg-gray-600 focus:bg-gray-600">
+                <Plus className="mr-2 h-3 w-3" />
+                Add Panel
+              </DropdownMenuSubTrigger>
+              <DropdownMenuSubContent className="bg-gray-700 border-gray-600">
+                <DropdownMenuItem 
+                  className="hover:bg-gray-600 focus:bg-gray-600 text-gray-200"
+                  onClick={() => onAddPanel('left')}
+                >
+                  <ArrowLeft className="mr-2 h-3 w-3" />
+                  Add Left
+                </DropdownMenuItem>
+                <DropdownMenuItem 
+                  className="hover:bg-gray-600 focus:bg-gray-600 text-gray-200"
+                  onClick={() => onAddPanel('right')}
+                >
+                  <ArrowRight className="mr-2 h-3 w-3" />
+                  Add Right
+                </DropdownMenuItem>
+                <DropdownMenuItem 
+                  className="hover:bg-gray-600 focus:bg-gray-600 text-gray-200"
+                  onClick={() => onAddPanel('top')}
+                >
+                  <ArrowUp className="mr-2 h-3 w-3" />
+                  Add Top
+                </DropdownMenuItem>
+                <DropdownMenuItem 
+                  className="hover:bg-gray-600 focus:bg-gray-600 text-gray-200"
+                  onClick={() => onAddPanel('bottom')}
+                >
+                  <ArrowDown className="mr-2 h-3 w-3" />
+                  Add Bottom
+                </DropdownMenuItem>
+              </DropdownMenuSubContent>
+            </DropdownMenuSub>
             <DropdownMenuSeparator className="bg-gray-600" />
             <DropdownMenuItem className="hover:bg-gray-600 focus:bg-gray-600">
               <Maximize2 className="mr-2 h-3 w-3" />

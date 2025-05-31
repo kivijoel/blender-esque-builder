@@ -44,6 +44,10 @@ export const Panel: React.FC<PanelProps> = ({ data, allPanels, onUpdate, onAddPa
     setFontSize(14);
   };
 
+  const handleAddPanel = (direction: 'left' | 'right' | 'top' | 'bottom') => {
+    onAddPanel(direction, data.id);
+  };
+
   const style: React.CSSProperties = {
     position: 'absolute',
     left: `${data.x}%`,
@@ -64,6 +68,7 @@ export const Panel: React.FC<PanelProps> = ({ data, allPanels, onUpdate, onAddPa
         onTypeChange={handleTypeChange}
         onRemove={() => onRemovePanel(data.id)}
         onResetTextSize={handleResetTextSize}
+        onAddPanel={handleAddPanel}
       />
       <PanelContent type={data.type} fontSize={fontSize} />
       
