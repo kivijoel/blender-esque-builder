@@ -1,6 +1,6 @@
-
 import React, { useState, useCallback } from 'react';
 import { Panel } from './Panel';
+import { AddPanelMenu } from './AddPanelMenu';
 import { PanelData, PanelType } from '@/types/panel';
 
 export const WorkspaceContainer = () => {
@@ -56,6 +56,95 @@ export const WorkspaceContainer = () => {
         }
         return panel;
       });
+    });
+  }, []);
+
+  const addPanelFromMenu = useCallback((direction: 'left' | 'right' | 'top' | 'bottom') => {
+    setPanels(prev => {
+      const newId = Date.now().toString();
+      const newPanels = [...prev];
+      
+      if (direction === 'right') {
+        // Add new panel to the right of the entire workspace
+        const rightmostX = Math.max(...prev.map(p => p.x + p.width));
+        const availableWidth = 100 - rightmostX;
+        const newWidth = Math.max(20, availableWidth);
+        
+        // Adjust existing panels if needed
+        if (availableWidth < 20) {
+          const shrinkRatio = 0.8;
+          newPanels.forEach(panel => {
+            panel.width *= shrinkRatio;
+            panel.x *= shrinkRatio;
+          });
+        }
+        
+        newPanels.push({
+          id: newId,
+          type: 'viewport',
+          x: rightmostX * (availableWidth < 20 ? 0.8 : 1),
+          y: 0,
+          width: newWidth * (availableWidth < 20 ? 0.2 : 1),
+          height: 100
+        });
+      } else if (direction === 'left') {
+        // Add new panel to the left, shift others right
+        const newWidth = 25;
+        newPanels.forEach(panel => {
+          panel.x += newWidth;
+          panel.width = Math.max(10, panel.width - newWidth / prev.length);
+        });
+        
+        newPanels.push({
+          id: newId,
+          type: 'viewport',
+          x: 0,
+          y: 0,
+          width: newWidth,
+          height: 100
+        });
+      } else if (direction === 'bottom') {
+        // Add new panel to the bottom
+        const bottomY = Math.max(...prev.map(p => p.y + p.height));
+        const availableHeight = 100 - bottomY;
+        const newHeight = Math.max(20, availableHeight);
+        
+        // Adjust existing panels if needed
+        if (availableHeight < 20) {
+          const shrinkRatio = 0.8;
+          newPanels.forEach(panel => {
+            panel.height *= shrinkRatio;
+            panel.y *= shrinkRatio;
+          });
+        }
+        
+        newPanels.push({
+          id: newId,
+          type: 'viewport',
+          x: 0,
+          y: bottomY * (availableHeight < 20 ? 0.8 : 1),
+          width: 100,
+          height: newHeight * (availableHeight < 20 ? 0.2 : 1)
+        });
+      } else if (direction === 'top') {
+        // Add new panel to the top, shift others down
+        const newHeight = 25;
+        newPanels.forEach(panel => {
+          panel.y += newHeight;
+          panel.height = Math.max(10, panel.height - newHeight / prev.length);
+        });
+        
+        newPanels.push({
+          id: newId,
+          type: 'viewport',
+          x: 0,
+          y: 0,
+          width: 100,
+          height: newHeight
+        });
+      }
+      
+      return newPanels;
     });
   }, []);
 
@@ -196,6 +285,7 @@ export const WorkspaceContainer = () => {
 
   return (
     <div className="w-full h-screen relative bg-gray-800 overflow-hidden">
+      <AddPanelMenu onAddPanel={addPanelFromMenu} />
       {panels.map(panel => (
         <Panel
           key={panel.id}
