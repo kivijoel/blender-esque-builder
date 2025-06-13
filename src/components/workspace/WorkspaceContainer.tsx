@@ -243,7 +243,19 @@ export const WorkspaceContainer = () => {
   const removePanel = useCallback((id: string) => {
     setPanels(prev => {
       const panelToRemove = prev.find(p => p.id === id);
-      if (!panelToRemove || prev.length <= 1) return prev;
+      if (!panelToRemove) return prev;
+
+      // If this is the last panel, create a new empty panel
+      if (prev.length <= 1) {
+        return [{
+          id: Date.now().toString(),
+          type: 'viewport',
+          x: 0,
+          y: 0,
+          width: 100,
+          height: 100
+        }];
+      }
 
       const remainingPanels = prev.filter(panel => panel.id !== id);
       
@@ -254,35 +266,58 @@ export const WorkspaceContainer = () => {
         // Check adjacency with tight tolerance for perfect connections
         const tolerance = 0.1;
         
+        // Check if panel is to the right of removed panel
         const isRightAdjacent = Math.abs(panel.x - (panelToRemove.x + panelToRemove.width)) < tolerance &&
                                panel.y < panelToRemove.y + panelToRemove.height &&
                                panel.y + panel.height > panelToRemove.y;
 
+        // Check if panel is to the left of removed panel
         const isLeftAdjacent = Math.abs(panelToRemove.x - (panel.x + panel.width)) < tolerance &&
                               panel.y < panelToRemove.y + panelToRemove.height &&
                               panel.y + panel.height > panelToRemove.y;
 
+        // Check if panel is below removed panel
         const isBottomAdjacent = Math.abs(panel.y - (panelToRemove.y + panelToRemove.height)) < tolerance &&
                                 panel.x < panelToRemove.x + panelToRemove.width &&
                                 panel.x + panel.width > panelToRemove.x;
 
+        // Check if panel is above removed panel
         const isTopAdjacent = Math.abs(panelToRemove.y - (panel.y + panel.height)) < tolerance &&
                              panel.x < panelToRemove.x + panelToRemove.width &&
                              panel.x + panel.width > panelToRemove.x;
 
-        // Expand to fill space and maintain perfect connections
+        // Expand horizontally if adjacent
         if (isRightAdjacent) {
+          // Panel is to the right, expand it left to fill the gap
           newPanel.x = panelToRemove.x;
           newPanel.width = panel.width + panelToRemove.width;
         } else if (isLeftAdjacent) {
+          // Panel is to the left, expand it right to fill the gap
           newPanel.width = panel.width + panelToRemove.width;
         }
 
+        // Expand vertically if adjacent
         if (isBottomAdjacent) {
+          // Panel is below, expand it up to fill the gap
           newPanel.y = panelToRemove.y;
           newPanel.height = panel.height + panelToRemove.height;
         } else if (isTopAdjacent) {
+          // Panel is above, expand it down to fill the gap
           newPanel.height = panel.height + panelToRemove.height;
+        }
+
+        // Handle edge cases: if removed panel touches canvas edge, move adjacent panels to edge
+        if (panelToRemove.x === 0 && isRightAdjacent) {
+          newPanel.x = 0;
+        }
+        if (panelToRemove.y === 0 && isBottomAdjacent) {
+          newPanel.y = 0;
+        }
+        if (panelToRemove.x + panelToRemove.width >= 100 && isLeftAdjacent) {
+          newPanel.width = 100 - panel.x;
+        }
+        if (panelToRemove.y + panelToRemove.height >= 100 && isTopAdjacent) {
+          newPanel.height = 100 - panel.y;
         }
 
         return newPanel;
