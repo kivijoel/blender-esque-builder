@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback } from 'react';
 import { Panel } from './Panel';
 import { PanelData, PanelType } from '@/types/panel';
@@ -87,42 +86,65 @@ export const WorkspaceContainer = () => {
         const oldRightEdge = resizingPanel.x + resizingPanel.width;
         const newWidth = Math.max(5, Math.min(95, resizingPanel.width + delta));
         const newRightEdge = resizingPanel.x + newWidth;
+        const connectionDelta = newRightEdge - oldRightEdge;
         
         resizingPanel.width = newWidth;
 
-        // Find and adjust all connected panels on the right
-        for (const panel of newPanels) {
-          if (panel.id === id) continue;
-          
-          // Check if panel is connected on the right with exact precision
-          if (Math.abs(panel.x - oldRightEdge) < 0.01 &&
-              panel.y < resizingPanel.y + resizingPanel.height &&
-              panel.y + panel.height > resizingPanel.y) {
-            const connectionDelta = newRightEdge - oldRightEdge;
-            panel.x = newRightEdge;
-            panel.width = Math.max(5, panel.width - connectionDelta);
-          }
-        }
+        // Find all panels that share the same vertical edge (entire column)
+        const affectedPanels = newPanels.filter(panel => {
+          if (panel.id === id) return false;
+          return Math.abs(panel.x - oldRightEdge) < 0.01;
+        });
+
+        // Move the entire column
+        affectedPanels.forEach(panel => {
+          panel.x = newRightEdge;
+          panel.width = Math.max(5, panel.width - connectionDelta);
+        });
+
+        // Also find panels that are connected on the left side of the moving edge
+        const leftConnectedPanels = newPanels.filter(panel => {
+          if (panel.id === id) return false;
+          const panelRightEdge = panel.x + panel.width;
+          return Math.abs(panelRightEdge - oldRightEdge) < 0.01;
+        });
+
+        // Extend panels that are connected on the left
+        leftConnectedPanels.forEach(panel => {
+          panel.width = Math.max(5, panel.width + connectionDelta);
+        });
+
       } else { // bottom direction
         const oldBottomEdge = resizingPanel.y + resizingPanel.height;
         const newHeight = Math.max(5, Math.min(95, resizingPanel.height + delta));
         const newBottomEdge = resizingPanel.y + newHeight;
+        const connectionDelta = newBottomEdge - oldBottomEdge;
         
         resizingPanel.height = newHeight;
 
-        // Find and adjust all connected panels below
-        for (const panel of newPanels) {
-          if (panel.id === id) continue;
-          
-          // Check if panel is connected below with exact precision
-          if (Math.abs(panel.y - oldBottomEdge) < 0.01 &&
-              panel.x < resizingPanel.x + resizingPanel.width &&
-              panel.x + panel.width > resizingPanel.x) {
-            const connectionDelta = newBottomEdge - oldBottomEdge;
-            panel.y = newBottomEdge;
-            panel.height = Math.max(5, panel.height - connectionDelta);
-          }
-        }
+        // Find all panels that share the same horizontal edge (entire row)
+        const affectedPanels = newPanels.filter(panel => {
+          if (panel.id === id) return false;
+          return Math.abs(panel.y - oldBottomEdge) < 0.01;
+        });
+
+        // Move the entire row
+        affectedPanels.forEach(panel => {
+          panel.y = newBottomEdge;
+          panel.height = Math.max(5, panel.height - connectionDelta);
+        });
+
+        // Also find panels that are connected on the top side of the moving edge
+        const topConnectedPanels = newPanels.filter(panel => {
+          if (panel.id === id) return false;
+          const panelBottomEdge = panel.y + panel.height;
+          return Math.abs(panelBottomEdge - oldBottomEdge) < 0.01;
+        });
+
+        // Extend panels that are connected on the top
+        topConnectedPanels.forEach(panel => {
+          panel.height = Math.max(5, panel.height + connectionDelta);
+        });
       }
       
       return connectToNearbyEdges(newPanels);
