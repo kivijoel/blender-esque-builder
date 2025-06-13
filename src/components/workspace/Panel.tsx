@@ -81,8 +81,16 @@ export const Panel: React.FC<PanelProps> = ({ data, allPanels, onUpdate, onAddPa
         position="bottom" 
         onSplit={() => onAddPanel('bottom', data.id)} 
       />
+      <PanelEdge 
+        position="left" 
+        onSplit={() => onAddPanel('left', data.id)} 
+      />
+      <PanelEdge 
+        position="top" 
+        onSplit={() => onAddPanel('top', data.id)} 
+      />
 
-      {/* Resize handles */}
+      {/* Resize handles for all edges */}
       <ResizeHandle
         direction="right"
         onResize={(delta) => onResize(data.id, 'right', delta)}
