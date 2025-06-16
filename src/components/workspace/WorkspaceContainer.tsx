@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback } from 'react';
 import { Panel } from './Panel';
 import { PanelData, PanelType } from '@/types/panel';
@@ -9,61 +10,88 @@ export const WorkspaceContainer = () => {
     { id: '3', type: 'properties', x: 50, y: 50, width: 50, height: 50 },
   ]);
 
-  // Helper function to find nearby edges and connect panels
-  const connectToNearbyEdges = useCallback((panels: PanelData[]) => {
-    const connectionThreshold = 5; // 5% threshold for nearby edges
-    const connectedPanels = [...panels];
+  // Improved edge connection system
+  const snapToNearbyEdges = useCallback((panels: PanelData[]) => {
+    const tolerance = 0.1;
+    const snappedPanels = panels.map(panel => ({ ...panel }));
 
-    for (let i = 0; i < connectedPanels.length; i++) {
-      const panel = connectedPanels[i];
-      
-      for (let j = 0; j < connectedPanels.length; j++) {
-        if (i === j) continue;
-        const otherPanel = connectedPanels[j];
+    // Multiple passes to ensure all connections are made
+    for (let pass = 0; pass < 3; pass++) {
+      for (let i = 0; i < snappedPanels.length; i++) {
+        const panel = snappedPanels[i];
+        
+        for (let j = 0; j < snappedPanels.length; j++) {
+          if (i === j) continue;
+          const otherPanel = snappedPanels[j];
 
-        // Check for nearby right-left edge connection
-        const rightEdge = panel.x + panel.width;
-        if (Math.abs(rightEdge - otherPanel.x) < connectionThreshold &&
-            panel.y < otherPanel.y + otherPanel.height &&
-            panel.y + panel.height > otherPanel.y) {
-          // Connect the edges
-          panel.width = otherPanel.x - panel.x;
+          // Snap vertical edges (left-right connections)
+          const panelRight = panel.x + panel.width;
+          const otherRight = otherPanel.x + otherPanel.width;
+
+          // Check if panels overlap vertically
+          const verticalOverlap = panel.y < otherPanel.y + otherPanel.height && 
+                                 panel.y + panel.height > otherPanel.y;
+
+          if (verticalOverlap) {
+            // Snap right edge to left edge
+            if (Math.abs(panelRight - otherPanel.x) < tolerance) {
+              panel.width = otherPanel.x - panel.x;
+            }
+            // Snap left edge to right edge
+            if (Math.abs(panel.x - otherRight) < tolerance) {
+              const widthDiff = panel.x - otherRight;
+              panel.x = otherRight;
+              panel.width += widthDiff;
+            }
+            // Snap left edges together
+            if (Math.abs(panel.x - otherPanel.x) < tolerance) {
+              panel.x = otherPanel.x;
+            }
+            // Snap right edges together
+            if (Math.abs(panelRight - otherRight) < tolerance) {
+              panel.width = otherRight - panel.x;
+            }
+          }
+
+          // Snap horizontal edges (top-bottom connections)
+          const panelBottom = panel.y + panel.height;
+          const otherBottom = otherPanel.y + otherPanel.height;
+
+          // Check if panels overlap horizontally
+          const horizontalOverlap = panel.x < otherPanel.x + otherPanel.width && 
+                                   panel.x + panel.width > otherPanel.x;
+
+          if (horizontalOverlap) {
+            // Snap bottom edge to top edge
+            if (Math.abs(panelBottom - otherPanel.y) < tolerance) {
+              panel.height = otherPanel.y - panel.y;
+            }
+            // Snap top edge to bottom edge
+            if (Math.abs(panel.y - otherBottom) < tolerance) {
+              const heightDiff = panel.y - otherBottom;
+              panel.y = otherBottom;
+              panel.height += heightDiff;
+            }
+            // Snap top edges together
+            if (Math.abs(panel.y - otherPanel.y) < tolerance) {
+              panel.y = otherPanel.y;
+            }
+            // Snap bottom edges together
+            if (Math.abs(panelBottom - otherBottom) < tolerance) {
+              panel.height = otherBottom - panel.y;
+            }
+          }
         }
 
-        // Check for nearby left-right edge connection
-        const otherRightEdge = otherPanel.x + otherPanel.width;
-        if (Math.abs(panel.x - otherRightEdge) < connectionThreshold &&
-            panel.y < otherPanel.y + otherPanel.height &&
-            panel.y + panel.height > otherPanel.y) {
-          // Connect the edges
-          const widthDiff = panel.x - otherRightEdge;
-          panel.x = otherRightEdge;
-          panel.width += widthDiff;
-        }
-
-        // Check for nearby bottom-top edge connection
-        const bottomEdge = panel.y + panel.height;
-        if (Math.abs(bottomEdge - otherPanel.y) < connectionThreshold &&
-            panel.x < otherPanel.x + otherPanel.width &&
-            panel.x + panel.width > otherPanel.x) {
-          // Connect the edges
-          panel.height = otherPanel.y - panel.y;
-        }
-
-        // Check for nearby top-bottom edge connection
-        const otherBottomEdge = otherPanel.y + otherPanel.height;
-        if (Math.abs(panel.y - otherBottomEdge) < connectionThreshold &&
-            panel.x < otherPanel.x + otherPanel.width &&
-            panel.x + panel.width > otherPanel.x) {
-          // Connect the edges
-          const heightDiff = panel.y - otherBottomEdge;
-          panel.y = otherBottomEdge;
-          panel.height += heightDiff;
-        }
+        // Snap to canvas edges
+        if (Math.abs(panel.x) < tolerance) panel.x = 0;
+        if (Math.abs(panel.y) < tolerance) panel.y = 0;
+        if (Math.abs(panel.x + panel.width - 100) < tolerance) panel.width = 100 - panel.x;
+        if (Math.abs(panel.y + panel.height - 100) < tolerance) panel.height = 100 - panel.y;
       }
     }
 
-    return connectedPanels;
+    return snappedPanels;
   }, []);
 
   const updatePanel = useCallback((id: string, updates: Partial<PanelData>) => {
@@ -71,9 +99,9 @@ export const WorkspaceContainer = () => {
       const updated = prev.map(panel => 
         panel.id === id ? { ...panel, ...updates } : panel
       );
-      return connectToNearbyEdges(updated);
+      return snapToNearbyEdges(updated);
     });
-  }, [connectToNearbyEdges]);
+  }, [snapToNearbyEdges]);
 
   const handleResize = useCallback((id: string, direction: 'right' | 'bottom', delta: number) => {
     setPanels(prev => {
@@ -90,28 +118,19 @@ export const WorkspaceContainer = () => {
         
         resizingPanel.width = newWidth;
 
-        // Find all panels that share the same vertical edge (entire column)
-        const affectedPanels = newPanels.filter(panel => {
-          if (panel.id === id) return false;
-          return Math.abs(panel.x - oldRightEdge) < 0.01;
-        });
-
-        // Move the entire column
-        affectedPanels.forEach(panel => {
-          panel.x = newRightEdge;
-          panel.width = Math.max(5, panel.width - connectionDelta);
-        });
-
-        // Also find panels that are connected on the left side of the moving edge
-        const leftConnectedPanels = newPanels.filter(panel => {
-          if (panel.id === id) return false;
-          const panelRightEdge = panel.x + panel.width;
-          return Math.abs(panelRightEdge - oldRightEdge) < 0.01;
-        });
-
-        // Extend panels that are connected on the left
-        leftConnectedPanels.forEach(panel => {
-          panel.width = Math.max(5, panel.width + connectionDelta);
+        // Find and move all panels that share this vertical edge
+        newPanels.forEach(panel => {
+          if (panel.id === id) return;
+          
+          // Panels that start at the old right edge
+          if (Math.abs(panel.x - oldRightEdge) < 0.1) {
+            panel.x = newRightEdge;
+            panel.width = Math.max(5, panel.width - connectionDelta);
+          }
+          // Panels that end at the old right edge
+          else if (Math.abs((panel.x + panel.width) - oldRightEdge) < 0.1) {
+            panel.width = Math.max(5, panel.width + connectionDelta);
+          }
         });
 
       } else { // bottom direction
@@ -122,34 +141,25 @@ export const WorkspaceContainer = () => {
         
         resizingPanel.height = newHeight;
 
-        // Find all panels that share the same horizontal edge (entire row)
-        const affectedPanels = newPanels.filter(panel => {
-          if (panel.id === id) return false;
-          return Math.abs(panel.y - oldBottomEdge) < 0.01;
-        });
-
-        // Move the entire row
-        affectedPanels.forEach(panel => {
-          panel.y = newBottomEdge;
-          panel.height = Math.max(5, panel.height - connectionDelta);
-        });
-
-        // Also find panels that are connected on the top side of the moving edge
-        const topConnectedPanels = newPanels.filter(panel => {
-          if (panel.id === id) return false;
-          const panelBottomEdge = panel.y + panel.height;
-          return Math.abs(panelBottomEdge - oldBottomEdge) < 0.01;
-        });
-
-        // Extend panels that are connected on the top
-        topConnectedPanels.forEach(panel => {
-          panel.height = Math.max(5, panel.height + connectionDelta);
+        // Find and move all panels that share this horizontal edge
+        newPanels.forEach(panel => {
+          if (panel.id === id) return;
+          
+          // Panels that start at the old bottom edge
+          if (Math.abs(panel.y - oldBottomEdge) < 0.1) {
+            panel.y = newBottomEdge;
+            panel.height = Math.max(5, panel.height - connectionDelta);
+          }
+          // Panels that end at the old bottom edge
+          else if (Math.abs((panel.y + panel.height) - oldBottomEdge) < 0.1) {
+            panel.height = Math.max(5, panel.height + connectionDelta);
+          }
         });
       }
       
-      return connectToNearbyEdges(newPanels);
+      return snapToNearbyEdges(newPanels);
     });
-  }, [connectToNearbyEdges]);
+  }, [snapToNearbyEdges]);
 
   const addPanel = useCallback((direction: 'left' | 'right' | 'top' | 'bottom', targetId: string) => {
     setPanels(prev => {
@@ -159,35 +169,46 @@ export const WorkspaceContainer = () => {
       const newId = Date.now().toString();
       let newPanels = [...prev];
       
-      // Create new panel based on direction
       let newPanel: PanelData;
       
       if (direction === 'right') {
         const newWidth = targetPanel.width / 2;
+        const newX = targetPanel.x + newWidth;
+        
         // Update target panel
         newPanels = newPanels.map(panel => 
           panel.id === targetId 
             ? { ...panel, width: newWidth }
             : panel
         );
-        // Create new panel
+        
+        // Move panels that were to the right
+        newPanels = newPanels.map(panel => {
+          if (panel.id === targetId) return panel;
+          if (Math.abs(panel.x - (targetPanel.x + targetPanel.width)) < 0.1) {
+            return { ...panel, x: newX + newWidth, width: Math.max(5, panel.width - newWidth) };
+          }
+          return panel;
+        });
+        
         newPanel = {
           id: newId,
           type: 'viewport',
-          x: targetPanel.x + newWidth,
+          x: newX,
           y: targetPanel.y,
           width: newWidth,
           height: targetPanel.height
         };
       } else if (direction === 'left') {
         const newWidth = targetPanel.width / 2;
-        // Update target panel
+        
+        // Move target panel
         newPanels = newPanels.map(panel => 
           panel.id === targetId 
             ? { ...panel, x: targetPanel.x + newWidth, width: newWidth }
             : panel
         );
-        // Create new panel
+        
         newPanel = {
           id: newId,
           type: 'viewport',
@@ -198,30 +219,42 @@ export const WorkspaceContainer = () => {
         };
       } else if (direction === 'bottom') {
         const newHeight = targetPanel.height / 2;
+        const newY = targetPanel.y + newHeight;
+        
         // Update target panel
         newPanels = newPanels.map(panel => 
           panel.id === targetId 
             ? { ...panel, height: newHeight }
             : panel
         );
-        // Create new panel
+        
+        // Move panels that were below
+        newPanels = newPanels.map(panel => {
+          if (panel.id === targetId) return panel;
+          if (Math.abs(panel.y - (targetPanel.y + targetPanel.height)) < 0.1) {
+            return { ...panel, y: newY + newHeight, height: Math.max(5, panel.height - newHeight) };
+          }
+          return panel;
+        });
+        
         newPanel = {
           id: newId,
           type: 'viewport',
           x: targetPanel.x,
-          y: targetPanel.y + newHeight,
+          y: newY,
           width: targetPanel.width,
           height: newHeight
         };
       } else { // top
         const newHeight = targetPanel.height / 2;
-        // Update target panel
+        
+        // Move target panel
         newPanels = newPanels.map(panel => 
           panel.id === targetId 
             ? { ...panel, y: targetPanel.y + newHeight, height: newHeight }
             : panel
         );
-        // Create new panel
+        
         newPanel = {
           id: newId,
           type: 'viewport',
@@ -232,13 +265,10 @@ export const WorkspaceContainer = () => {
         };
       }
       
-      // Add the new panel
       newPanels.push(newPanel);
-      
-      // Connect to nearby edges
-      return connectToNearbyEdges(newPanels);
+      return snapToNearbyEdges(newPanels);
     });
-  }, [connectToNearbyEdges]);
+  }, [snapToNearbyEdges]);
 
   const removePanel = useCallback((id: string) => {
     setPanels(prev => {
@@ -259,73 +289,63 @@ export const WorkspaceContainer = () => {
 
       const remainingPanels = prev.filter(panel => panel.id !== id);
       
-      // Find panels that should expand to fill the removed panel's space
+      // Find the best panel to expand into the removed space
       const adjustedPanels = remainingPanels.map(panel => {
         let newPanel = { ...panel };
-
-        // Check adjacency with tight tolerance for perfect connections
         const tolerance = 0.1;
         
-        // Check if panel is to the right of removed panel
+        // Check for exact edge adjacency
         const isRightAdjacent = Math.abs(panel.x - (panelToRemove.x + panelToRemove.width)) < tolerance &&
                                panel.y < panelToRemove.y + panelToRemove.height &&
                                panel.y + panel.height > panelToRemove.y;
 
-        // Check if panel is to the left of removed panel
         const isLeftAdjacent = Math.abs(panelToRemove.x - (panel.x + panel.width)) < tolerance &&
                               panel.y < panelToRemove.y + panelToRemove.height &&
                               panel.y + panel.height > panelToRemove.y;
 
-        // Check if panel is below removed panel
         const isBottomAdjacent = Math.abs(panel.y - (panelToRemove.y + panelToRemove.height)) < tolerance &&
                                 panel.x < panelToRemove.x + panelToRemove.width &&
                                 panel.x + panel.width > panelToRemove.x;
 
-        // Check if panel is above removed panel
         const isTopAdjacent = Math.abs(panelToRemove.y - (panel.y + panel.height)) < tolerance &&
                              panel.x < panelToRemove.x + panelToRemove.width &&
                              panel.x + panel.width > panelToRemove.x;
 
-        // Expand horizontally if adjacent
+        // Expand into the removed panel's space
         if (isRightAdjacent) {
-          // Panel is to the right, expand it left to fill the gap
           newPanel.x = panelToRemove.x;
           newPanel.width = panel.width + panelToRemove.width;
         } else if (isLeftAdjacent) {
-          // Panel is to the left, expand it right to fill the gap
           newPanel.width = panel.width + panelToRemove.width;
         }
 
-        // Expand vertically if adjacent
         if (isBottomAdjacent) {
-          // Panel is below, expand it up to fill the gap
           newPanel.y = panelToRemove.y;
           newPanel.height = panel.height + panelToRemove.height;
         } else if (isTopAdjacent) {
-          // Panel is above, expand it down to fill the gap
           newPanel.height = panel.height + panelToRemove.height;
         }
 
-        // Handle edge cases: if removed panel touches canvas edge, move adjacent panels to edge
+        // Handle canvas edge cases
         if (panelToRemove.x === 0 && isRightAdjacent) {
           newPanel.x = 0;
         }
         if (panelToRemove.y === 0 && isBottomAdjacent) {
           newPanel.y = 0;
         }
-        if (panelToRemove.x + panelToRemove.width >= 100 && isLeftAdjacent) {
+        if (Math.abs(panelToRemove.x + panelToRemove.width - 100) < tolerance && isLeftAdjacent) {
           newPanel.width = 100 - panel.x;
         }
-        if (panelToRemove.y + panelToRemove.height >= 100 && isTopAdjacent) {
+        if (Math.abs(panelToRemove.y + panelToRemove.height - 100) < tolerance && isTopAdjacent) {
           newPanel.height = 100 - panel.y;
         }
 
         return newPanel;
       });
 
-      return connectToNearbyEdges(adjustedPanels);
+      return snapToNearbyEdges(adjustedPanels);
     });
-  }, [connectToNearbyEdges]);
+  }, [snapToNearbyEdges]);
 
   return (
     <div className="w-full h-screen relative bg-gray-800 overflow-hidden">
