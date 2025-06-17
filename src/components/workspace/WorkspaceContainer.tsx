@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback } from 'react';
 import { Panel } from './Panel';
 import { PresetTabs } from './PresetTabs';
@@ -369,7 +370,7 @@ export const WorkspaceContainer = () => {
 
   return (
     <div className="w-full h-screen flex flex-col bg-gray-800 overflow-hidden">
-      <PresetTabs onLoadPreset={loadPreset} />
+      <PresetTabs currentPanels={panels} onLoadPreset={loadPreset} />
       <div className="flex-1 relative">
         {panels.map(panel => (
           <Panel

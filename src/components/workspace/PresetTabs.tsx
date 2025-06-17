@@ -12,6 +12,7 @@ interface Preset {
 }
 
 interface PresetTabsProps {
+  currentPanels: PanelData[];
   onLoadPreset: (panels: PanelData[]) => void;
 }
 
@@ -42,23 +43,32 @@ const defaultPresets: Preset[] = [
   }
 ];
 
-export const PresetTabs: React.FC<PresetTabsProps> = ({ onLoadPreset }) => {
+export const PresetTabs: React.FC<PresetTabsProps> = ({ currentPanels, onLoadPreset }) => {
   const [presets, setPresets] = useState<Preset[]>(defaultPresets);
   const [activePreset, setActivePreset] = useState('default');
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingName, setEditingName] = useState('');
 
+  const saveCurrentPreset = () => {
+    setPresets(prev => prev.map(preset => 
+      preset.id === activePreset 
+        ? { ...preset, panels: [...currentPanels] }
+        : preset
+    ));
+  };
+
   const handleAddPreset = () => {
+    // Save current state before adding new preset
+    saveCurrentPreset();
+    
     const newPreset: Preset = {
       id: Date.now().toString(),
       name: 'New Preset',
-      panels: [
-        { id: '1', type: 'viewport', x: 0, y: 0, width: 100, height: 100 }
-      ]
+      panels: [...currentPanels] // Use current panels as starting point
     };
     setPresets([...presets, newPreset]);
     setActivePreset(newPreset.id);
-    onLoadPreset(newPreset.panels);
+    // No need to call onLoadPreset since we're using current panels
   };
 
   const handleRemovePreset = (presetId: string) => {
@@ -95,6 +105,9 @@ export const PresetTabs: React.FC<PresetTabsProps> = ({ onLoadPreset }) => {
   };
 
   const handlePresetChange = (presetId: string) => {
+    // Save current preset state before switching
+    saveCurrentPreset();
+    
     const preset = presets.find(p => p.id === presetId);
     if (preset) {
       setActivePreset(presetId);
