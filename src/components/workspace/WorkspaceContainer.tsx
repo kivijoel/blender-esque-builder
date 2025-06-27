@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback } from 'react';
 import { Panel } from './Panel';
 import { PresetTabs } from './PresetTabs';
@@ -15,13 +14,13 @@ export const WorkspaceContainer = () => {
     setPanels(presetPanels);
   }, []);
 
-  // Improved edge connection system
+  // Improved edge connection system with better snapping
   const snapToNearbyEdges = useCallback((panels: PanelData[]) => {
     const tolerance = 0.1;
     const snappedPanels = panels.map(panel => ({ ...panel }));
 
     // Multiple passes to ensure all connections are made
-    for (let pass = 0; pass < 3; pass++) {
+    for (let pass = 0; pass < 5; pass++) {
       for (let i = 0; i < snappedPanels.length; i++) {
         const panel = snappedPanels[i];
         
@@ -304,6 +303,7 @@ export const WorkspaceContainer = () => {
     });
   }, [snapToNearbyEdges]);
 
+  // Improved panel removal with better edge filling
   const removePanel = useCallback((id: string) => {
     setPanels(prev => {
       const panelToRemove = prev.find(p => p.id === id);
@@ -324,11 +324,14 @@ export const WorkspaceContainer = () => {
       const remainingPanels = prev.filter(panel => panel.id !== id);
       const tolerance = 0.1;
       
-      // Find panels that can expand into the removed space
-      const adjustedPanels = remainingPanels.map(panel => {
-        let newPanel = { ...panel };
+      // Create a working copy of remaining panels
+      const adjustedPanels = remainingPanels.map(panel => ({ ...panel }));
+      
+      // Find all panels that can expand into the removed space
+      for (let i = 0; i < adjustedPanels.length; i++) {
+        const panel = adjustedPanels[i];
         
-        // Check if this panel can expand into the removed panel's space
+        // Check if this panel can expand horizontally
         const canExpandRight = Math.abs(panel.x + panel.width - panelToRemove.x) < tolerance &&
                               panel.y < panelToRemove.y + panelToRemove.height &&
                               panel.y + panel.height > panelToRemove.y;
@@ -336,7 +339,8 @@ export const WorkspaceContainer = () => {
         const canExpandLeft = Math.abs(panel.x - (panelToRemove.x + panelToRemove.width)) < tolerance &&
                              panel.y < panelToRemove.y + panelToRemove.height &&
                              panel.y + panel.height > panelToRemove.y;
-                             
+        
+        // Check if this panel can expand vertically
         const canExpandDown = Math.abs(panel.y + panel.height - panelToRemove.y) < tolerance &&
                              panel.x < panelToRemove.x + panelToRemove.width &&
                              panel.x + panel.width > panelToRemove.x;
@@ -345,24 +349,36 @@ export const WorkspaceContainer = () => {
                            panel.x < panelToRemove.x + panelToRemove.width &&
                            panel.x + panel.width > panelToRemove.x;
 
-        // Expand horizontally
-        if (canExpandRight) {
-          newPanel.width += panelToRemove.width;
-        } else if (canExpandLeft) {
-          newPanel.x = panelToRemove.x;
-          newPanel.width += panelToRemove.width;
-        }
-        
-        // Expand vertically
-        if (canExpandDown) {
-          newPanel.height += panelToRemove.height;
-        } else if (canExpandUp) {
-          newPanel.y = panelToRemove.y;
-          newPanel.height += panelToRemove.height;
-        }
+        // Priority: expand the panel that shares the most area with the removed panel
+        const sharedWidth = Math.min(panel.x + panel.width, panelToRemove.x + panelToRemove.width) - 
+                           Math.max(panel.x, panelToRemove.x);
+        const sharedHeight = Math.min(panel.y + panel.height, panelToRemove.y + panelToRemove.height) - 
+                            Math.max(panel.y, panelToRemove.y);
+        const sharedArea = Math.max(0, sharedWidth) * Math.max(0, sharedHeight);
 
-        return newPanel;
-      });
+        if (sharedArea > 0) {
+          // Expand horizontally if possible
+          if (canExpandRight) {
+            panel.width += panelToRemove.width;
+          } else if (canExpandLeft) {
+            panel.x = panelToRemove.x;
+            panel.width += panelToRemove.width;
+          }
+          
+          // Expand vertically if possible
+          if (canExpandDown) {
+            panel.height += panelToRemove.height;
+          } else if (canExpandUp) {
+            panel.y = panelToRemove.y;
+            panel.height += panelToRemove.height;
+          }
+          
+          // If we expanded this panel, we're done
+          if (canExpandRight || canExpandLeft || canExpandDown || canExpandUp) {
+            break;
+          }
+        }
+      }
 
       return snapToNearbyEdges(adjustedPanels);
     });

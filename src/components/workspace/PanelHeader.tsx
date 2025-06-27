@@ -21,6 +21,27 @@ const panelTypes: { value: PanelType; label: string }[] = [
   { value: 'timeline', label: 'Timeline' },
   { value: 'shader-editor', label: 'Shader Editor' },
   { value: 'text-editor', label: 'Text Editor' },
+  { value: 'html-parser', label: 'HTML Parser' },
+  { value: 'parsed-data', label: 'Parsed Data' },
+  { value: 'console', label: 'Console' },
+  { value: 'file-browser', label: 'File Browser' },
+  { value: 'inspector', label: 'Inspector' },
+  { value: 'animation', label: 'Animation' },
+  { value: 'materials', label: 'Materials' },
+  { value: 'geometry', label: 'Geometry' },
+  { value: 'modifiers', label: 'Modifiers' },
+  { value: 'constraints', label: 'Constraints' },
+  { value: 'physics', label: 'Physics' },
+  { value: 'scripting', label: 'Scripting' },
+  { value: 'compositor', label: 'Compositor' },
+  { value: 'video-editor', label: 'Video Editor' },
+  { value: 'image-editor', label: 'Image Editor' },
+  { value: 'uv-editor', label: 'UV Editor' },
+  { value: 'graph-editor', label: 'Graph Editor' },
+  { value: 'dope-sheet', label: 'Dope Sheet' },
+  { value: 'nla-editor', label: 'NLA Editor' },
+  { value: 'clip-editor', label: 'Clip Editor' },
+  { value: 'spreadsheet', label: 'Spreadsheet' },
 ];
 
 export const PanelHeader: React.FC<PanelHeaderProps> = ({ type, onTypeChange, onRemove, onResetTextSize, onAddPanel }) => {
@@ -110,7 +131,7 @@ export const PanelHeader: React.FC<PanelHeaderProps> = ({ type, onTypeChange, on
           <SelectTrigger className="h-6 text-xs bg-gray-600 border-gray-500 text-gray-200">
             <SelectValue />
           </SelectTrigger>
-          <SelectContent className="bg-gray-700 border-gray-600">
+          <SelectContent className="bg-gray-700 border-gray-600 max-h-60 overflow-y-auto">
             {panelTypes.map(({ value, label }) => (
               <SelectItem 
                 key={value} 
