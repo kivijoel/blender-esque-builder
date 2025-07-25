@@ -87,11 +87,16 @@ export const WorkspaceContainer = () => {
           }
         }
 
-        // Snap to canvas edges
+        // Snap to canvas edges with priority for right edge
         if (Math.abs(panel.x) < tolerance) panel.x = 0;
         if (Math.abs(panel.y) < tolerance) panel.y = 0;
         if (Math.abs(panel.x + panel.width - 100) < tolerance) panel.width = 100 - panel.x;
         if (Math.abs(panel.y + panel.height - 100) < tolerance) panel.height = 100 - panel.y;
+        
+        // Force panels at right edge to stay at right edge
+        if (panel.x + panel.width >= 99.9) {
+          panel.width = 100 - panel.x;
+        }
       }
     }
 
